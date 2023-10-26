@@ -118,6 +118,8 @@ export class Viewer {
       this.defaultCamera,
       this.renderer.domElement
     );
+    this.controls.minPolarAngle = Math.PI / 2;
+    this.controls.maxPolarAngle = Math.PI / 2;
     this.controls.screenSpacePanning = true;
 
     this.el.appendChild(this.renderer.domElement);
@@ -212,6 +214,9 @@ export class Viewer {
         url,
         (rhino3d) => {
           window.VIEWER.json = rhino3d;
+
+          rhino3d.rotation.x = -Math.PI / 2;
+          rhino3d.rotation.z = Math.PI;
 
           const scene = rhino3d;
           const clips = rhino3d.animations || [];
