@@ -149,8 +149,13 @@ export class Viewer {
 
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
-    this.el.addEventListener("mousemove", onPointerMove);
+    this.el.addEventListener("pointermove", onPointerMove);
     window.addEventListener("resize", this.resize.bind(this), false);
+    document.addEventListener("mousemove", function (event) {
+      const mouseLabel = document.getElementById("mouse-label");
+      mouseLabel.style.left = event.clientX + "px";
+      mouseLabel.style.top = event.clientY + "px";
+    });
   }
 
   animate(time) {
@@ -171,14 +176,27 @@ export class Viewer {
 
     const intersects = raycaster.intersectObjects(this.scene.children, true);
 
+    const mouseLabel = document.getElementById("mouse-label");
+
     if (intersects.length > 0) {
       if (INTERSECTED != intersects[0].object) {
         if (INTERSECTED)
           INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-
         INTERSECTED = intersects[0].object;
         INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
         INTERSECTED.material.emissive.setHex(0xff0000);
+
+        if (INTERSECTED.userData.attributes.name) {
+          console.log(INTERSECTED.userData.attributes.name);
+          mouseLabel.innerHTML = INTERSECTED.userData.attributes.name;
+          mouseLabel.style.display = "flex";
+          mouseLabel.style.color = "Blue";
+        } else {
+          console.log("No Name");
+          mouseLabel.innerHTML = "No Name";
+          mouseLabel.style.display = "flex";
+          mouseLabel.style.color = "red";
+        }
       }
     } else {
       if (INTERSECTED)
