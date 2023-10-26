@@ -20,6 +20,7 @@ import {
   LinearToneMapping,
   ACESFilmicToneMapping,
 } from "three";
+import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { Rhino3dmLoader } from "three/addons/loaders/3DMLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
@@ -36,7 +37,13 @@ const DEFAULT_CAMERA = "[default]";
 
 const MANAGER = new LoadingManager();
 
+let INTERSECTED;
+
 const Preset = { ASSET_GENERATOR: "assetgenerator" };
+
+const pointer = new THREE.Vector2();
+
+let raycaster;
 
 Cache.enabled = true;
 
@@ -75,6 +82,8 @@ export class Viewer {
       directColor: "#FFFFFF",
       bgColor: "#191919",
     };
+
+    raycaster = new THREE.Raycaster();
 
     this.prevTime = 0;
 
@@ -140,6 +149,7 @@ export class Viewer {
 
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
+    this.el.addEventListener("mousemove", onPointerMove);
     window.addEventListener("resize", this.resize.bind(this), false);
   }
 
@@ -157,6 +167,26 @@ export class Viewer {
   }
 
   render() {
+    raycaster.setFromCamera(pointer, this.activeCamera);
+
+    const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+    if (intersects.length > 0) {
+      if (INTERSECTED != intersects[0].object) {
+        if (INTERSECTED)
+          INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+        INTERSECTED = intersects[0].object;
+        INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+        INTERSECTED.material.emissive.setHex(0xff0000);
+      }
+    } else {
+      if (INTERSECTED)
+        INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+      INTERSECTED = null;
+    }
+
     this.renderer.render(this.scene, this.activeCamera);
     if (this.state.grid) {
       this.axesCamera.position.copy(this.defaultCamera.position);
@@ -745,4 +775,9 @@ function isIOS() {
     // iPad on iOS 13 detection
     (navigator.userAgent.includes("Mac") && "ontouchend" in document)
   );
+}
+
+function onPointerMove(event) {
+  pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
