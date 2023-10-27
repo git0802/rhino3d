@@ -20,6 +20,7 @@ import {
   LinearToneMapping,
   ACESFilmicToneMapping,
 } from "three";
+import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { Rhino3dmLoader } from "three/addons/loaders/3DMLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
@@ -36,7 +37,13 @@ const DEFAULT_CAMERA = "[default]";
 
 const MANAGER = new LoadingManager();
 
+let INTERSECTED;
+
 const Preset = { ASSET_GENERATOR: "assetgenerator" };
+
+const pointer = new THREE.Vector2();
+
+let raycaster;
 
 Cache.enabled = true;
 
@@ -75,6 +82,8 @@ export class Viewer {
       directColor: "#FFFFFF",
       bgColor: "#191919",
     };
+
+    raycaster = new THREE.Raycaster();
 
     this.prevTime = 0;
 
@@ -118,6 +127,8 @@ export class Viewer {
       this.defaultCamera,
       this.renderer.domElement
     );
+    this.controls.minPolarAngle = Math.PI / 2;
+    this.controls.maxPolarAngle = Math.PI / 2;
     this.controls.screenSpacePanning = true;
 
     this.el.appendChild(this.renderer.domElement);
@@ -138,7 +149,13 @@ export class Viewer {
 
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
+    this.el.addEventListener("pointermove", onPointerMove);
     window.addEventListener("resize", this.resize.bind(this), false);
+    document.addEventListener("mousemove", function (event) {
+      const mouseLabel = document.getElementById("mouse-label");
+      mouseLabel.style.left = event.clientX + "px";
+      mouseLabel.style.top = event.clientY + "px";
+    });
   }
 
   animate(time) {
@@ -155,6 +172,43 @@ export class Viewer {
   }
 
   render() {
+    raycaster.setFromCamera(pointer, this.activeCamera);
+
+    const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+    const mouseLabel = document.getElementById("mouse-label");
+
+    if (intersects.length > 0) {
+      if (INTERSECTED != intersects[0].object) {
+        if (INTERSECTED)
+          INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+        INTERSECTED = intersects[0].object;
+        INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+        INTERSECTED.material.emissive.setHex(0xff0000);
+
+        if (INTERSECTED.userData.attributes.name) {
+          console.log(INTERSECTED.userData.attributes.name);
+          mouseLabel.innerHTML = INTERSECTED.userData.attributes.name;
+          mouseLabel.style.display = "flex";
+          mouseLabel.style.color = "Blue";
+        } else {
+          console.log("No Name");
+          mouseLabel.innerHTML = "No Name";
+          mouseLabel.style.display = "flex";
+          mouseLabel.style.color = "red";
+        }
+      }
+    } else {
+      if (INTERSECTED)
+        INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+      INTERSECTED = null;
+
+      mouseLabel.innerHTML = "No Select";
+      mouseLabel.style.display = "flex";
+      mouseLabel.style.color = "red";
+    }
+
     this.renderer.render(this.scene, this.activeCamera);
     if (this.state.grid) {
       this.axesCamera.position.copy(this.defaultCamera.position);
@@ -212,6 +266,9 @@ export class Viewer {
         url,
         (rhino3d) => {
           window.VIEWER.json = rhino3d;
+
+          rhino3d.rotation.x = -Math.PI / 2;
+          rhino3d.rotation.z = Math.PI;
 
           const scene = rhino3d;
           const clips = rhino3d.animations || [];
@@ -740,4 +797,9 @@ function isIOS() {
     // iPad on iOS 13 detection
     (navigator.userAgent.includes("Mac") && "ontouchend" in document)
   );
+}
+
+function onPointerMove(event) {
+  pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
