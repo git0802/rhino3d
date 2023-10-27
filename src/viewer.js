@@ -203,6 +203,10 @@ export class Viewer {
         INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
 
       INTERSECTED = null;
+
+      mouseLabel.innerHTML = "No Select";
+      mouseLabel.style.display = "flex";
+      mouseLabel.style.color = "red";
     }
 
     this.renderer.render(this.scene, this.activeCamera);
