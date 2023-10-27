@@ -206,7 +206,7 @@ export class Viewer {
 
       mouseLabel.innerHTML = "No Select";
       mouseLabel.style.display = "flex";
-      mouseLabel.style.color = "red";
+      mouseLabel.style.color = "white";
     }
 
     this.renderer.render(this.scene, this.activeCamera);
