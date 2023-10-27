@@ -140,7 +140,7 @@ export default function ThreeEntryPoint() {
           const name = this.object.name;
 
           scene.traverse(function (child) {
-            if (child.userData.hasOwnProperty("attributes")) {
+            if ("attributes" in child.userData) {
               if ("layerIndex" in child.userData.attributes) {
                 const layerName =
                   layers[child.userData.attributes.layerIndex].name;

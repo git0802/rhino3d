@@ -1,9 +1,8 @@
 import { Component } from "react";
 import ThreeEntryPoint from "./ThreeEntryPoint";
 
-let flag: boolean = false;
+let flag = false;
 export default class ThreeContainer extends Component {
-  [x: string]: any;
   componentDidMount() {
     if (!flag) {
       flag = true;
@@ -12,10 +11,6 @@ export default class ThreeContainer extends Component {
   }
 
   render() {
-    return (
-      <>
-        <div ref={(element) => (this.scene = element)} />
-      </>
-    );
+    return <div ref={(element) => (this.scene = element)} />;
   }
 }
