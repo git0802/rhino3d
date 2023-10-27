@@ -149,13 +149,8 @@ export class Viewer {
 
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
-    this.el.addEventListener("pointermove", onPointerMove);
+    this.el.addEventListener("click", onPointerMove);
     window.addEventListener("resize", this.resize.bind(this), false);
-    document.addEventListener("mousemove", function (event) {
-      const mouseLabel = document.getElementById("mouse-label");
-      mouseLabel.style.left = event.clientX + "px";
-      mouseLabel.style.top = event.clientY + "px";
-    });
   }
 
   animate(time) {
@@ -204,9 +199,7 @@ export class Viewer {
 
       INTERSECTED = null;
 
-      mouseLabel.innerHTML = "No Select";
-      mouseLabel.style.display = "flex";
-      mouseLabel.style.color = "white";
+      mouseLabel.style.display = "none";
     }
 
     this.renderer.render(this.scene, this.activeCamera);
@@ -802,4 +795,8 @@ function isIOS() {
 function onPointerMove(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  const mouseLabel = document.getElementById("mouse-label");
+  mouseLabel.style.left = event.clientX + "px";
+  mouseLabel.style.top = event.clientY + "px";
 }
